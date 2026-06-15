@@ -5,7 +5,7 @@ from transformers import RTDetrForObjectDetection
 
 accelerate = Accelerator()
 # Static
-RAW_MODEL_NAME_DIR = "/Users/abhishek/PycharmProjects/cv-learning/src/training/fine_tuning/model/rtdetr_r50vd"
+RAW_MODEL_NAME_DIR = Path(__file__).parent.parent.parent.parent / "models" / "rtdetr_r50vd"
 DEVICE = accelerate.device
 BASE_DIR = Path(__file__).parent.parent.parent.parent / "data" / "VisDrone_Dataset"
 
