@@ -1,0 +1,21 @@
+# Dataset Configuration
+
+data:
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+paths:
+  data_dir: ./data/raw
+  train_dir: ./data/raw/train
+  test_dir: ./data/raw/test
+
+augmentation:
+  random_horizontal_flip: true
+  random_rotation: 10
+  normalize:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]

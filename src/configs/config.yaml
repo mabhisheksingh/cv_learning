@@ -1,0 +1,33 @@
+# Configuration for Dog Detection Training
+
+data:
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+model:
+  type: custom_cnn  # Options: custom_cnn, pretrained
+  num_classes: 2
+  dropout: 0.5
+  
+  # For pretrained models
+  pretrained_model: resnet50  # Options: resnet18, resnet50, efficientnet_b0, vgg16, mobilenet_v2
+  freeze_backbone: false
+
+training:
+  num_epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  checkpoint_interval: 5
+  early_stopping_patience: 10
+
+paths:
+  data_dir: ./data
+  checkpoint_dir: ./checkpoints
+  log_dir: ./logs
+  saved_models_dir: ./saved_models
+
+device: cuda  # Options: cuda, cpu

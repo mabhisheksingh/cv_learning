@@ -1,0 +1,35 @@
+# Fine-Tuning Training Configuration
+
+model:
+  type: pretrained
+  base_model: resnet50
+  local_model_path: ./models/resnet50/pytorch_model.bin
+  num_classes: 2
+  freeze_backbone: true
+  dropout: 0.5
+
+training:
+  num_epochs: 10
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 32
+  num_workers: 4
+  checkpoint_interval: 5
+  early_stopping_patience: 10
+
+optimizer:
+  type: adam
+  betas: [0.9, 0.999]
+
+scheduler:
+  type: step_lr
+  step_size: 5
+  gamma: 0.1
+
+paths:
+  data_dir: ./data/raw
+  checkpoint_dir: ./checkpoints
+  log_dir: ./logs
+  saved_models_dir: ./saved_models
+
+device: cpu  # Options: cuda, cpu

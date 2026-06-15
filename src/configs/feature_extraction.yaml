@@ -1,0 +1,24 @@
+# Feature Extraction Training Configuration
+
+model:
+  type: transfer_learning
+  base_model: resnet50
+  local_model_path: ./models/resnet50/pytorch_model.bin
+  feature_dim: 2048
+
+classifier:
+  type: svm  # Options: svm, logistic
+  kernel: rbf
+  C: 1.0
+  gamma: scale
+
+training:
+  batch_size: 32
+  num_workers: 4
+
+paths:
+  data_dir: ./data/raw
+  model_dir: ./models
+  output_dir: ./outputs
+
+device: cpu  # Options: cuda, cpu
