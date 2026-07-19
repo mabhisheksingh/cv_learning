@@ -9,6 +9,7 @@ from ultralytics import YOLO
 import cv2
 from trackers import ByteTrackTracker
 
+from learning.supervison.object_direction_util import ObjectDirectionUtil
 from learning.supervison.speed_utils import SpeedUtils
 
 # Configure logging
@@ -19,7 +20,7 @@ logging.basicConfig(
 # Suppress noisy library loggers
 logging.getLogger("ultralytics").setLevel(logging.WARNING)
 logging.getLogger("supervision").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("speed_tracking")
 
 supported_formats:list = ["mp4", "avi", "mov", "mkv", "webm"]
 
@@ -40,7 +41,7 @@ def parse_arguments()-> argparse.Namespace:
     parser.add_argument(
         "--pixels-per-meter",
         type=float,
-        default=None,
+        default=40,
         help="Calibration parameter: pixels per meter for speed calculation (optional)"
     )
     parser.add_argument(
@@ -75,7 +76,7 @@ def get_polygone_zone_and_polygone(video_info:sv.VideoInfo):
     polyzone = sv.PolygonZone(polygon=polygone)
     return polygone, polyzone
 
-def load_model(device="mps", model_path: str = "/Users/abhishek/PycharmProjects/cv-learning/learning/supervison/yolov8n.pt"):
+def load_model(device="mps", model_path: str = "/Users/abhishek/PycharmProjects/cv-learning/learning/supervison/yolo26m.pt"):
     """Load YOLO model with error handling."""
     try:
         if not model_path:
@@ -159,7 +160,7 @@ def calibrate_perspective(frame, dst_size=(1000, 1000)):
     logger.info("Calibration complete. Homography matrix computed.")
     return M, dst_size
 
-def executor(source_path:str, pixels_per_meter: float | None = None, calibrate: bool = False):
+def executor(source_path: str, pixels_per_meter: float | None = None, calibrate: bool = False):
     """Main executor function with error handling and logging."""
     try:
         frames, video_info = get_video_frames_and_info(source_path=source_path)
@@ -208,11 +209,11 @@ def executor(source_path:str, pixels_per_meter: float | None = None, calibrate: 
         byte_track =  ByteTrackTracker()
         polygone, polyzone = get_polygone_zone_and_polygone(video_info=video_info)
         speed_utils = SpeedUtils()
+        direction_utils = ObjectDirectionUtil()
         frame_id = 0
         total_frames = 0
         
         logger.info("Starting frame processing...")
-        
         for frame in frames:
             try:
                 total_frames += 1
@@ -253,9 +254,15 @@ def executor(source_path:str, pixels_per_meter: float | None = None, calibrate: 
                                 curr_time=frame_id/video_info.fps,
                                 pixels_per_meter=pixels_per_meter if pixels_per_meter else 20.0,
                             )
+                            direction = direction_utils.get_direction(
+                                track_id=tracker_id,
+                                bottom_center=center,
+                                curr_video_time=frame_id/video_info.fps,
+                            ).value
 
                             # Create label with speed only
-                            label_text = f"{tracker_id}: {velocity} kmph"
+                            label_text = f"{tracker_id}: {velocity} kmph | {direction}"
+                            logger.info("Label | track_id=%s label=%s", tracker_id, label_text)
                             label.append(label_text)
 
                         except Exception as e:
