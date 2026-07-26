@@ -8,7 +8,7 @@ model:
   freeze_backbone: true
   dropout: 0.5
 
-training:
+transfer_learning:
   num_epochs: 10
   learning_rate: 0.001
   weight_decay: 0.0001

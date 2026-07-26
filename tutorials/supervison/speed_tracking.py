@@ -9,8 +9,8 @@ from ultralytics import YOLO
 import cv2
 from trackers import ByteTrackTracker
 
-from learning.supervison.object_direction_util import ObjectDirectionUtil
-from learning.supervison.speed_utils import SpeedUtils
+from tutorials.supervison.object_direction_util import ObjectDirectionUtil
+from tutorials.supervison.speed_utils import SpeedUtils
 
 # Configure logging
 logging.basicConfig(
@@ -76,7 +76,7 @@ def get_polygone_zone_and_polygone(video_info:sv.VideoInfo):
     polyzone = sv.PolygonZone(polygon=polygone)
     return polygone, polyzone
 
-def load_model(device="mps", model_path: str = "/Users/abhishek/PycharmProjects/cv-learning/learning/supervison/yolo26m.pt"):
+def load_model(device="mps", model_path: str = "/Users/abhishek/PycharmProjects/cv-learning/tutorials/supervison/yolo26m.pt"):
     """Load YOLO model with error handling."""
     try:
         if not model_path:

@@ -12,7 +12,7 @@ classifier:
   C: 1.0
   gamma: scale
 
-training:
+transfer_learning:
   batch_size: 32
   num_workers: 4
 

@@ -198,7 +198,7 @@ def train_rtdetr_model():
     print(f"Using device: {device}")
 
     # Parse dataset paths from VisDrone.yaml structure
-    # Script is run from src/training/fine_tuning/, dataset is at data/VisDrone_Dataset
+    # Script is run from src/transfer_learning/fine_tuning/, dataset is at data/VisDrone_Dataset
     base_dir = Path(__file__).parent.parent.parent.parent / "data" / "VisDrone_Dataset"
     train_images = base_dir / "VisDrone2019-DET-train" / "images"
     train_labels = base_dir / "VisDrone2019-DET-train" / "labels"

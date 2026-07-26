@@ -5,7 +5,7 @@ from typing import Optional
 
 
 class Logger:
-    """Custom logger for training experiments."""
+    """Custom logger for transfer learning experiments."""
     
     def __init__(
         self,

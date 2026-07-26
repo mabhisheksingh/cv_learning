@@ -36,6 +36,6 @@ build-backend = "hatchling.build"
 packages = ["src"]
 
 [project.scripts]
-transfer_learning = "src.training.fine_tuning.train_transfer_learning:main"
-feature_extraction = "src.training.feature_extraction.train_classifier:main"
-test_model = "src.training.fine_tuning.test_model:main"
+transfer_learning = "src.transfer_learning.fine_tuning.train_transfer_learning:main"
+feature_extraction = "src.transfer_learning.feature_extraction.train_classifier:main"
+test_model = "src.transfer_learning.fine_tuning.test_model:main"

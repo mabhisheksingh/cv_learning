@@ -35,7 +35,7 @@ cv-learning/
 │   ├── data/
 │   │   ├── dataset.py          # PyTorch Dataset class
 │   │   └── transforms.py      # PyTorch transforms/augmentation
-│   ├── training/
+│   ├── transfer_learning/
 │   │   ├── feature_extraction/ # Feature extraction training
 │   │   │   ├── transfer_learning.py # Transfer learning model
 │   │   │   ├── train_classifier.py  # Train SVM on CNN features
@@ -214,7 +214,7 @@ The framework supports multiple fine-tuning strategies:
 2. **Gradual Unfreeze**: Unfreeze layers in stages
 3. **Differential Learning Rates**: Different LRs for different layer groups
 
-See `src/training/fine_tuning.py` for implementation details.
+See `src/transfer_learning/fine_tuning.py` for implementation details.
 
 ## License
 

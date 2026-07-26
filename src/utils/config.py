@@ -34,7 +34,7 @@ class Config:
                 'num_classes': 2,
                 'dropout': 0.5
             },
-            'training': {
+            'transfer_learning': {
                 'num_epochs': 50,
                 'learning_rate': 0.001,
                 'weight_decay': 1e-4,
