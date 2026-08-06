@@ -67,3 +67,5 @@ Thumbs.db
 
 # UV
 uv.lock
+/data/*
+/video_create_for_noise_creation/*
