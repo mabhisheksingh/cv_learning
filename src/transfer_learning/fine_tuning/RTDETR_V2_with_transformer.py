@@ -6,41 +6,12 @@ from pathlib import Path
 os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 
 import torch
-import transformers.models.rt_detr.modeling_rt_detr as rt_detr_modeling
 from transformers import (
     RTDetrForObjectDetection,
     RTDetrImageProcessor,
     Trainer,
     TrainingArguments,
 )
-# ==============================================================================
-# MPS FLOAT64 FIX (Monkey-patching Hugging Face's RT-DETR embedding function)
-# ==============================================================================
-import transformers.models.rt_detr.modeling_rt_detr as rt_detr_modeling
-
-# 1. Save the original function so we can still use its core logic
-_original_build_pos_embed = rt_detr_modeling.build_2d_sinusoidal_position_embedding
-
-
-def patched_build_2d_sinusoidal_position_embedding(*args, **kwargs):
-    # Extract the device from kwargs or args
-    device = kwargs.get("device")
-    if device_is_mps := (device is not None and "mps" in str(device)):
-        # Force the math to happen on CPU where float64 is legal
-        kwargs["device"] = "cpu"
-
-    # Call the original function safely
-    pos_embed = _original_build_pos_embed(*args, **kwargs)
-
-    # If we forced it to CPU for math, cast to float32 and send it back to MPS
-    if device_is_mps:
-        return pos_embed.to(dtype=torch.float32, device="mps")
-
-    return pos_embed
-
-# 2. Inject the patch back into the module
-rt_detr_modeling.build_2d_sinusoidal_position_embedding = patched_build_2d_sinusoidal_position_embedding
-# ==============================================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 MODEL_NAME = "rtdetr_r50vd"
@@ -81,7 +52,7 @@ valid_dataset = load_coco_split(coco_data_dir, "valid")
 model_id = str(PROJECT_ROOT / "models" / MODEL_NAME)
 
 image_processor = RTDetrImageProcessor.from_pretrained(model_id)
-model = RTDetrForObjectDetection.from_pretrained(model_id).to(torch.float32)
+model = RTDetrForObjectDetection.from_pretrained(model_id,torch_dtype=torch.float32)
 model.to(CURRENT_DEVICE)
 
 
