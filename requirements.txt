@@ -6,6 +6,9 @@ torchaudio>=2.11.0
 # Hugging Face for RT-DETR
 transformers>=5.11.0
 accelerate>=1.14.0
+datasets>=3.0.0
+evaluate>=0.4.0
+peft>=0.14.0
 
 # Image Processing
 opencv-python>=4.13.0.92

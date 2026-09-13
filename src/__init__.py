@@ -1,31 +1,11 @@
 """
-Dog Detection ML Framework - Entry Point
+cv-learning — Transfer Learning in Computer Vision
+
+Run each example as a module, e.g.:
+
+    uv run python -m src.transfer_learning.feature_extraction.mobilenetv3_small_100_lamb_in1k
+    uv run python -m src.transfer_learning.fine_tuning.RTDETR_V2_with_transformer
+    uv run python -m src.transfer_learning.lora.vit_lora_image_classification
+    uv run python -m src.transfer_learning.knowledge_distillation.mobilenet_kd_from_vit
+    uv run python -m src.transfer_learning.zero_shot.clip_zero_shot_classification
 """
-
-
-def dev():
-    """Development entry point - shows available training options."""
-    print("=" * 60)
-    print("DOG DETECTION ML FRAMEWORK")
-    print("=" * 60)
-    print("\nAvailable Training Options:")
-    print("\n1. Transfer Learning (Fine-tune ResNet50):")
-    print(
-        "   uv run python src/transfer_learning/fine_tuning/train_transfer_learning.py"
-    )
-    print("\n2. Feature Extraction + SVM Classifier:")
-    print(
-        "   uv run python src/transfer_learning/feature_extraction/train_classifier.py"
-    )
-    print("\n3. Test Model:")
-    print("   uv run python src/transfer_learning/fine_tuning/test_model.py")
-    print("\n" + "=" * 60)
-    print("Configuration files in src/configs/:")
-    print("  - dataset.yaml")
-    print("  - feature_extraction.yaml")
-    print("  - fine_tuning.yaml")
-    print("=" * 60)
-
-
-if __name__ == "__main__":
-    dev()

@@ -1,220 +1,121 @@
-# Dog Detection ML Framework
+# CV Learning
 
-A PyTorch-based machine learning framework for dog detection with support for multiple feature extraction methods and training approaches.
+A focused study repository for **Transfer Learning in Computer Vision** using HuggingFace Transformers as the primary framework.
 
-## Features
+## Goal
 
-- **Multiple Feature Extraction Methods**:
-  - HOG (Histogram of Oriented Gradients)
-  - SIFT (Scale-Invariant Feature Transform)
-  - CNN-based features (using pretrained models)
-
-- **Multiple Training Approaches**:
-  - Custom CNN architectures
-  - Pretrained model fine-tuning (ResNet, EfficientNet, VGG, MobileNet)
-  - Traditional ML classifiers (SVM, Random Forest)
-  - Hybrid approaches (CNN features + SVM)
-
-- **Training Utilities**:
-  - Flexible configuration management
-  - Checkpoint saving and loading
-  - Training logging
-  - Fine-tuning strategies (gradual unfreeze, differential learning rates)
+Learn all industry-standard transfer learning techniques in CV with working code examples, from feature extraction to zero-shot inference. Doubles as interview preparation material.
 
 ## Project Structure
 
 ```
 cv-learning/
-├── data/                       # Dataset (gitignored)
-│   └── raw/                    # Raw dataset images
-│       ├── train/              # Training data (cats, dogs)
-│       └── test/               # Test data (cats, dogs)
-├── models/                     # Downloaded models (gitignored)
-│   └── resnet50/               # Local ResNet50 model
 ├── src/
-│   ├── data/
-│   │   ├── dataset.py          # PyTorch Dataset class
-│   │   └── transforms.py      # PyTorch transforms/augmentation
 │   ├── transfer_learning/
-│   │   ├── feature_extraction/ # Feature extraction training
-│   │   │   ├── transfer_learning.py # Transfer learning model
-│   │   │   ├── train_classifier.py  # Train SVM on CNN features
-│   │   │   └── traditional_trainer.py  # Traditional ML training
-│   │   └── fine_tuning/        # Fine-tuning and testing
-│   │       ├── train_transfer_learning.py  # Fine-tune ResNet50
-│   │       ├── fine_tuning.py  # Fine-tuning pretrained models
-│   │       ├── trainer.py      # PyTorch training loop
-│   │       └── test_model.py   # Test model on images
-│   ├── models/
-│   │   ├── custom_cnn.py       # Custom CNN architecture
-│   │   ├── pretrained.py       # Pretrained models
-│   │   └── traditional.py      # SVM, Random Forest wrappers
-│   ├── configs/                # Configuration files
-│   │   ├── dataset.yaml        # Dataset configuration
-│   │   ├── feature_extraction.yaml  # Feature extraction config
-│   │   ├── fine_tuning.yaml    # Fine-tuning config
-│   │   └── config.yaml         # General configuration
-│   └── utils/                  # All utilities
-│       ├── config.py           # Configuration management
-│       ├── metrics.py          # Evaluation metrics
-│       └── logger.py           # Training logger
-├── logs/                       # Training logs (gitignored)
-├── requirements.txt            # Dependencies
-├── pyproject.toml              # Project configuration
-├── .gitignore                  # Git ignore rules
-└── README.md                   # This file
+│   │   ├── README.md                        # Technique comparison + decision guide
+│   │   ├── feature_extraction/              # Type 1: Frozen backbone
+│   │   │   ├── mobilenetv3_small_100_lamb_in1k.py  ← HF Trainer example
+│   │   │   └── README.md
+│   │   ├── fine_tuning/                     # Type 2: Full / partial unfreeze
+│   │   │   ├── RTDETR_V2_with_transformer.py       ← HF Trainer (object detection)
+│   │   │   ├── RTDETR_V2_pure_pytorch.py           ← Pure PyTorch reference
+│   │   │   └── README.md
+│   │   ├── lora/                            # Type 3: Parameter-efficient (PEFT)
+│   │   │   ├── vit_lora_image_classification.py    ← ViT + LoRA via PEFT
+│   │   │   └── README.md
+│   │   ├── knowledge_distillation/          # Type 4: Teacher → Student compression
+│   │   │   ├── mobilenet_kd_from_vit.py            ← Custom KD Trainer
+│   │   │   └── README.md
+│   │   └── zero_shot/                       # Type 5: CLIP, no labels needed
+│   │       ├── clip_zero_shot_classification.py    ← CLIP zero-shot eval
+│   │       └── README.md
+│   ├── utils/
+│   │   ├── utils.py          # Device selection, dataset loaders
+│   │   ├── config.py         # Config management
+│   │   └── data_loader.py
+│   └── configs/
+│       ├── config.yaml
+│       └── dataset.yaml
+├── docs/                                    # Interview prep & learning resources
+│   ├── README.md                            # Index + must-know topics
+│   ├── 01_transfer_learning.md              # All 5 techniques with Q&A
+│   ├── 02_huggingface_ecosystem.md          # HF Trainer, datasets, PEFT, evaluate
+│   ├── 03_object_detection.md              # OD paradigms, DETR, losses, metrics
+│   ├── 04_interview_prep.md                 # 50+ interview Q&A
+│   └── 05_datasets_and_benchmarks.md       # Key datasets and leaderboards
+├── data/                                    # Datasets (gitignored)
+├── models/                                  # Downloaded pretrained models (gitignored)
+├── outputs/                                 # Training outputs (gitignored)
+├── requirements.txt
+└── pyproject.toml
 ```
 
-## Installation
+## Transfer Learning Techniques Covered
 
-1. Create a virtual environment:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
+| # | Technique | Task | Model | Script |
+|---|---|---|---|---|
+| 1 | Feature Extraction | Image Classification | MobileNetV3-Small | `feature_extraction/` |
+| 2 | Full Fine-Tuning | Object Detection | RT-DETRv2 | `fine_tuning/` |
+| 3 | LoRA / PEFT | Image Classification | ViT-Base + LoRA | `lora/` |
+| 4 | Knowledge Distillation | Image Classification | ViT → MobileNetV3 | `knowledge_distillation/` |
+| 5 | Zero-Shot (CLIP) | Image Classification | CLIP ViT-B/32 | `zero_shot/` |
 
-2. Install dependencies:
+## Tech Stack
+
+- **Primary**: HuggingFace `transformers` + `peft` + `datasets` + `evaluate`
+- **Secondary**: PyTorch, torchvision
+- **Dataset source**: Roboflow (auto-download via API)
+- **Models**: Downloaded locally to `models/` from HuggingFace Hub
+
+## Setup
+
 ```bash
+uv sync
+# or
 pip install -r requirements.txt
 ```
 
-Or using uv:
+### Download Models
+
 ```bash
-uv sync
+# MobileNetV3 (feature extraction)
+huggingface-cli download timm/mobilenetv3_small_100.lamb_in1k --local-dir ./models/mobilenetv3_small_100_lamb_in1k
+
+# ViT-Base (LoRA + KD teacher)
+huggingface-cli download google/vit-base-patch16-224 --local-dir ./models/vit_base_patch16_224
+
+# RT-DETRv2 (fine-tuning)
+huggingface-cli download PekingU/rtdetr_r50vd --local-dir ./models/rtdetr_r50vd
+
+# CLIP (zero-shot)
+huggingface-cli download openai/clip-vit-base-patch32 --local-dir ./models/clip_vit_base_patch32
 ```
 
-## Download Required Data and Models
+### Run Examples
 
-### 1. Download Dataset from Kaggle
-
-Install Kaggle API:
 ```bash
-pip install kaggle
+# Feature extraction (classification)
+uv run python -m src.transfer_learning.feature_extraction.mobilenetv3_small_100_lamb_in1k
+
+# Fine-tuning (object detection)
+uv run python -m src.transfer_learning.fine_tuning.RTDETR_V2_with_transformer
+
+# LoRA (PEFT)
+uv run python -m src.transfer_learning.lora.vit_lora_image_classification
+
+# Knowledge Distillation
+uv run python -m src.transfer_learning.knowledge_distillation.mobilenet_kd_from_vit
+
+# Zero-shot (CLIP)
+uv run python -m src.transfer_learning.zero_shot.clip_zero_shot_classification
 ```
 
-Download the Cats vs Dogs dataset:
-```bash
-kaggle datasets download -d samuelcortinhas/cats-and-dogs-image-classification
-unzip cats-and-dogs-image-classification.zip -d data/raw/
-```
+## Interview Prep Docs
 
-Or manually download and extract to `data/raw/` with this structure:
-```
-data/raw/
-├── train/
-│   ├── cats/
-│   └── dogs/
-└── test/
-    ├── cats/
-    └── dogs/
-```
-
-### 2. Download Pretrained Models from Hugging Face
-
-Install Hugging Face CLI:
-```bash
-pip install huggingface_hub
-```
-
-Download models to `models/` folder:
-```bash
-# ResNet50
-hf download microsoft/resnet-50 --local-dir ./models/resnet50
-
-# EfficientNet-B0
-hf download google/efficientnet-b0 --local-dir ./models/efficientnet_b0
-
-# Swin Transformer
-hf download microsoft/swin-tiny-patch4-window7-224 --local-dir ./models/swin_tiny
-
-# MobileNet V2
-hf download google/mobilenet_v2_1.0_224 --local-dir ./models/mobilenet_v2
-```
-
-**Note**: Models will be automatically downloaded by PyTorch on first use if not manually downloaded.
-
-## Usage
-
-### Training
-
-**Transfer Learning (Fine-tune ResNet50):**
-```bash
-uv run transfer_learning
-```
-
-**Feature Extraction + SVM Classifier:**
-```bash
-uv run feature_extraction
-```
-
-**Test Model:**
-```bash
-uv run test_model
-```
-
-### Configuration
-
-Edit `configs/config.yaml` to customize training parameters:
-
-```yaml
-data:
-  image_size: 224
-  batch_size: 32
-  num_workers: 4
-
-model:
-  type: custom_cnn
-  num_classes: 2
-  dropout: 0.5
-
-training:
-  num_epochs: 50
-  learning_rate: 0.001
-```
-
-### Data Preparation
-
-The dataset should be organized in `data/raw/` with the following structure:
-
-```
-data/raw/
-├── train/
-│   ├── cats/
-│   └── dogs/
-└── test/
-    ├── cats/
-    └── dogs/
-```
-
-Update the data loading code in `main.py` to load your images from these folders.
-
-## Supported Models
-
-### Custom CNN
-- `CustomCNN`: 4-layer CNN with batch normalization
-- `SimpleCNN`: Lightweight 3-layer CNN
-
-### Pretrained Models
-- ResNet (18, 50, 101)
-- EfficientNet (B0, B3)
-- VGG16
-- MobileNet V2
-- DenseNet121
-
-### Traditional Classifiers
-- SVM (with RBF kernel)
-- Random Forest
-- Logistic Regression
-
-## Fine-Tuning Strategies
-
-The framework supports multiple fine-tuning strategies:
-
-1. **Freeze Backbone**: Train only the classifier head
-2. **Gradual Unfreeze**: Unfreeze layers in stages
-3. **Differential Learning Rates**: Different LRs for different layer groups
-
-See `src/transfer_learning/fine_tuning.py` for implementation details.
+See `docs/` folder:
+- `docs/04_interview_prep.md` — 50+ Q&A covering TL, OD, PyTorch, augmentation, deployment
+- `docs/01_transfer_learning.md` — Deep dive into all 5 techniques
+- `docs/03_object_detection.md` — DETR family, mAP, losses, NMS
 
 ## License
 

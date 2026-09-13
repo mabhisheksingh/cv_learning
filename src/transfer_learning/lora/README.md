@@ -1,65 +1,49 @@
-# LoRA (Low-Rank Adaptation)
+# LoRA / PEFT (Parameter-Efficient Fine-Tuning)
 
-## Overview
-LoRA (Low-Rank Adaptation) is a parameter-efficient fine-tuning method that adds trainable low-rank matrices to pre-trained model weights. It dramatically reduces the number of trainable parameters while maintaining performance.
+## What is LoRA?
 
-## When to Use
-- Fine-tuning large language models (LLMs)
-- Limited GPU memory
-- Want to fine-tune multiple tasks efficiently
-- Need to store multiple fine-tuned versions
-- Working with transformer models
+LoRA freezes all pretrained weights and injects small trainable **low-rank matrices** alongside the original weight matrices in attention layers. Instead of updating a full W (d×d), it learns two small matrices A (d×r) and B (r×d) where r << d.
 
-## How It Works
-1. Freeze pre-trained model weights
-2. Add low-rank decomposition matrices (A and B) to specific layers
-3. Train only the low-rank matrices
-4. Combine with original weights during inference
-5. Can merge LoRA weights back into base model
-
-## Key Concepts
-- **Rank (r)**: Controls the number of trainable parameters (typically 4-64)
-- **Alpha (α)**: Scaling factor for LoRA weights
-- **Target modules**: Usually attention matrices (Q, K, V, O)
-- **Parameter efficiency**: Reduces trainable params by 1000x-10000x
-
-## Advantages
-- Extremely parameter-efficient (0.1%-1% of original params)
-- Low memory footprint
-- Fast training
-- Easy to switch between different LoRA adapters
-- No inference latency overhead when merged
-- Great for multi-task learning
-
-## Disadvantages
-- Slight performance gap vs full fine-tuning (usually small)
-- Requires LoRA-compatible implementations
-- Hyperparameter tuning (rank, alpha) needed
-- Mostly designed for transformer architectures
-
-## Example Code Structure
-```python
-from peft import LoraConfig, get_peft_model
-from transformers import AutoModelForCausalLM
-
-# Load base model
-model = AutoModelForCausalLM.from_pretrained("base-model")
-
-# Configure LoRA
-lora_config = LoraConfig(
-    r=16,  # rank
-    lora_alpha=32,
-    target_modules=["q_proj", "v_proj"],
-    lora_dropout=0.05,
-    task_type="CAUSAL_LM",
-)
-
-# Apply LoRA
-model = get_peft_model(model, lora_config)
-model.print_trainable_parameters()
+```
+W_new = W_frozen + B × A    (r = 16, vs d = 768 for ViT-Base)
+Trainable params: ~0.5% instead of 100%
 ```
 
+## When to Use
+
+- Large Vision Transformer model + small/medium dataset
+- Limited GPU memory (only adapter weights need gradients)
+- You want to store multiple task-specific adapters cheaply
+- Fast iteration on experiments (trains 3-5x faster than full FT)
+
+## Key Concepts
+
+| Concept | Explanation |
+|---|---|
+| `r` (rank) | Size of the low-rank bottleneck. r=4 (tiny) to r=64 (larger). Start with r=16 |
+| `lora_alpha` | Scale factor. Effective scale = alpha/r. Usually set alpha=2×r |
+| `target_modules` | Which linear layers get LoRA. For ViT: `["query", "value"]` |
+| `modules_to_save` | Layers trained normally (not LoRA). Usually `["classifier"]` |
+| `bias` | Whether to train bias terms. Usually `"none"` |
+
+## LoRA vs Other PEFT Methods
+
+| Method | Trainable Params | Best For |
+|---|---|---|
+| **LoRA** | ~0.5-2% | Attention layers, transformers |
+| **Prefix Tuning** | <0.1% | When you can't modify weights |
+| **Adapter** | ~3-5% | More capacity needed |
+| **Full Fine-tuning** | 100% | Large dataset, max performance |
+
+## Example in this folder
+
+| File | Task | Model |
+|---|---|---|
+| `vit_lora_image_classification.py` | Image Classification (Facial Expressions) | ViT-Base + LoRA via PEFT |
+
 ## Resources
-- LoRA Paper: https://arxiv.org/abs/2106.09685
-- Hugging Face PEFT: https://huggingface.co/docs/peft
-- PEFT Documentation: https://huggingface.co/docs/peft/task_guides/lora
+
+- LoRA paper: https://arxiv.org/abs/2106.09685
+- HF PEFT docs: https://huggingface.co/docs/peft
+- PEFT for vision: https://huggingface.co/docs/peft/task_guides/image_classification_lora
+- LoRA explained visually: https://lightning.ai/pages/community/lora-insights/
