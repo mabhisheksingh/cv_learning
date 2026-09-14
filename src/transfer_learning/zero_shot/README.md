@@ -52,9 +52,9 @@ Text Encoder (Transformer)  →  text embedding (512-d)
 
 # Even better (ensemble)
 [
-  "a photo of an angry person",
-  "a facial expression showing anger",
-  "someone who looks very angry",
+    "a photo of an angry person",
+    "a facial expression showing anger",
+    "someone who looks very angry",
 ]
 ```
 

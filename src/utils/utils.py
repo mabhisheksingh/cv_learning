@@ -22,16 +22,20 @@ logger = logging.getLogger(__name__)
 
 # NOTE: Prefer setting ROBOFLOW_API_KEY as an environment variable.
 # The hard-coded fallback is kept only for local convenience/backwards compatibility.
-_ROBOFLOW_API_KEY: str = os.environ.get(
-    "ROBOFLOW_API_KEY", "s2TP4YPS3Wj4VUUUTgsL"
-)
+_ROBOFLOW_API_KEY: str = os.environ.get("ROBOFLOW_API_KEY", "s2TP4YPS3Wj4VUUUTgsL")
 if "ROBOFLOW_API_KEY" not in os.environ:
     logger.warning(
         "ROBOFLOW_API_KEY not found in environment; using built-in fallback key. "
         "Set ROBOFLOW_API_KEY to keep secrets out of version control."
     )
 
-__all__ = ["get_device", "load_coco_split", "load_roboflow_dataset","load_classification_split","load_classification_split_with_hf_dataset"]
+__all__ = [
+    "get_device",
+    "load_coco_split",
+    "load_roboflow_dataset",
+    "load_classification_split",
+    "load_classification_split_with_hf_dataset",
+]
 
 
 def get_device() -> str:
@@ -87,13 +91,9 @@ def load_coco_split(data_dir: str | Path, split: str) -> CocoDetection:
     ann_file = root / "_annotations.coco.json"
 
     if not root.is_dir():
-        raise FileNotFoundError(
-            f"Split directory not found: {root.resolve()}"
-        )
+        raise FileNotFoundError(f"Split directory not found: {root.resolve()}")
     if not ann_file.is_file():
-        raise FileNotFoundError(
-            f"COCO annotation file not found: {ann_file.resolve()}"
-        )
+        raise FileNotFoundError(f"COCO annotation file not found: {ann_file.resolve()}")
 
     dataset = CocoDetection(root=str(root), annFile=str(ann_file))
     logger.info(f"Loaded {len(dataset)} images from '{split}' split")
@@ -131,9 +131,7 @@ def load_roboflow_dataset(
     download_path = Path(download_path)
 
     try:
-        already_present = download_path.is_dir() and bool(
-            any(download_path.iterdir())
-        )
+        already_present = download_path.is_dir() and bool(any(download_path.iterdir()))
         if already_present and not enable_fresh_download:
             logger.info(
                 f"Dataset already present at {download_path}; skipping download."
@@ -179,7 +177,10 @@ def load_roboflow_dataset(
         logger.error(f"Failed to load Roboflow dataset: {exc}")
         return False, str(exc)
 
-def load_classification_split(data_dir: str | Path, split: str, transform=None) -> ImageFolder:
+
+def load_classification_split(
+    data_dir: str | Path, split: str, transform=None
+) -> ImageFolder:
     """Load a single classification split from disk using the ImageFolder layout with torchvision dataset.
 
     Expects the split directory to contain subfolders named after each class
@@ -203,17 +204,17 @@ def load_classification_split(data_dir: str | Path, split: str, transform=None) 
     """
     root = Path(data_dir) / split
     if not root.is_dir():
-        raise FileNotFoundError(
-            f"Split directory not found: {root.resolve()}"
-        )
+        raise FileNotFoundError(f"Split directory not found: {root.resolve()}")
     # ImageFolder automatically looks inside the directory, treats subfolders
     # as class names, and indexes all images inside them.
     dataset = ImageFolder(root=str(root), transform=transform)
 
-    logger.info(f"Loaded {len(dataset)} images across {len(dataset.classes)} "
-            f"classes from '{split}' split"
+    logger.info(
+        f"Loaded {len(dataset)} images across {len(dataset.classes)} "
+        f"classes from '{split}' split"
     )
     return dataset
+
 
 def load_classification_split_with_hf_dataset(
     data_dir: str | Path,
@@ -243,5 +244,7 @@ def load_classification_split_with_hf_dataset(
     if transform is not None:
         ds.set_transform(transform)
 
-    logger.info(f"Loaded {len(ds)} images from '{split}' split via HuggingFace imagefolder")
+    logger.info(
+        f"Loaded {len(ds)} images from '{split}' split via HuggingFace imagefolder"
+    )
     return ds

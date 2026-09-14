@@ -1,5 +1,15 @@
-from .data_loader import load_images_from_folder
+from .utils import (
+    get_device,
+    load_classification_split,
+    load_classification_split_with_hf_dataset,
+    load_coco_split,
+    load_roboflow_dataset,
+)
 
 __all__ = [
-    "load_images_from_folder",
+    "get_device",
+    "load_classification_split",
+    "load_classification_split_with_hf_dataset",
+    "load_coco_split",
+    "load_roboflow_dataset",
 ]

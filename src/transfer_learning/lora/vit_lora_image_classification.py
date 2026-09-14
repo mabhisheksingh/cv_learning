@@ -63,14 +63,16 @@ data_dir = str(PROJECT_ROOT / "data" / DATASET_NAME)
 # ---------------------------------------------------------------------------
 train_ds = load_classification_split_with_hf_dataset(data_dir, "train")
 valid_ds = load_classification_split_with_hf_dataset(data_dir, "valid")
-test_ds  = load_classification_split_with_hf_dataset(data_dir, "test")
-logger.info(f"Split sizes — train: {len(train_ds)}, valid: {len(valid_ds)}, test: {len(test_ds)}")
+test_ds = load_classification_split_with_hf_dataset(data_dir, "test")
+logger.info(
+    f"Split sizes — train: {len(train_ds)}, valid: {len(valid_ds)}, test: {len(test_ds)}"
+)
 
 # Derive num_labels from ImageFolder so the model head has the correct size
-_tmp     = load_classification_split(data_dir, "train")
+_tmp = load_classification_split(data_dir, "train")
 num_labels = len(_tmp.classes)
-label2id   = {cls: idx for idx, cls in enumerate(_tmp.classes)}
-id2label   = {idx: cls for idx, cls in enumerate(_tmp.classes)}
+label2id = {cls: idx for idx, cls in enumerate(_tmp.classes)}
+id2label = {idx: cls for idx, cls in enumerate(_tmp.classes)}
 logger.info(f"Num classes: {num_labels}  Labels: {list(label2id.keys())}")
 
 # ---------------------------------------------------------------------------
@@ -96,8 +98,8 @@ model = AutoModelForImageClassification.from_pretrained(
 #    - Result: ~0.5-2% of original parameters are trained instead of 100%.
 # ---------------------------------------------------------------------------
 lora_config = LoraConfig(
-    r=16,                            # rank — higher = more capacity, more params
-    lora_alpha=32,                   # scaling factor (alpha/r = effective scale)
+    r=16,  # rank — higher = more capacity, more params
+    lora_alpha=32,  # scaling factor (alpha/r = effective scale)
     target_modules=["query", "value"],  # which linear layers to wrap with LoRA
     lora_dropout=0.1,
     bias="none",
@@ -105,19 +107,23 @@ lora_config = LoraConfig(
 )
 
 model = get_peft_model(model, lora_config)
-model.print_trainable_parameters()   # shows % of params being trained
+model.print_trainable_parameters()  # shows % of params being trained
 model.to(CURRENT_DEVICE)
+
 
 # ---------------------------------------------------------------------------
 # 6. On-the-fly image transforms
 # ---------------------------------------------------------------------------
 def apply_transforms(batch: dict) -> dict:
     batch["pixel_values"] = [
-        image_processor(img.convert("RGB"), return_tensors="pt")["pixel_values"].squeeze(0)
+        image_processor(img.convert("RGB"), return_tensors="pt")[
+            "pixel_values"
+        ].squeeze(0)
         for img in batch["image"]
     ]
     del batch["image"]
     return batch
+
 
 train_ds.set_transform(apply_transforms)
 valid_ds.set_transform(apply_transforms)
@@ -127,14 +133,16 @@ test_ds.set_transform(apply_transforms)
 # 7. Metrics
 # ---------------------------------------------------------------------------
 accuracy_metric = evaluate.load("accuracy")
-f1_metric       = evaluate.load("f1")
+f1_metric = evaluate.load("f1")
+
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     preds = np.argmax(logits, axis=-1)
     acc = accuracy_metric.compute(predictions=preds, references=labels)
-    f1  = f1_metric.compute(predictions=preds, references=labels, average="weighted")
+    f1 = f1_metric.compute(predictions=preds, references=labels, average="weighted")
     return {**acc, **f1}
+
 
 # ---------------------------------------------------------------------------
 # 8. TrainingArguments
@@ -146,7 +154,7 @@ training_args = TrainingArguments(
     num_train_epochs=5,
     per_device_train_batch_size=32,
     per_device_eval_batch_size=32,
-    learning_rate=2e-4,              # LoRA can tolerate higher LR than full FT
+    learning_rate=2e-4,  # LoRA can tolerate higher LR than full FT
     warmup_steps=100,
     weight_decay=1e-4,
     eval_strategy="epoch",

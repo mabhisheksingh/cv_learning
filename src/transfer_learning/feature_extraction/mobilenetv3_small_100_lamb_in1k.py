@@ -18,7 +18,9 @@ from src.utils.utils import (
     load_roboflow_dataset,
 )
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -57,7 +59,9 @@ data_dir = str(PROJECT_ROOT / "data" / DATASET_NAME)
 train_ds = load_classification_split_with_hf_dataset(data_dir, "train")
 valid_ds = load_classification_split_with_hf_dataset(data_dir=data_dir, split="valid")
 test_ds = load_classification_split_with_hf_dataset(data_dir=data_dir, split="test")
-logger.info(f"Split sizes — train: {len(train_ds)}, valid: {len(valid_ds)}, test: {len(test_ds)}")
+logger.info(
+    f"Split sizes — train: {len(train_ds)}, valid: {len(valid_ds)}, test: {len(test_ds)}"
+)
 
 # ---------------------------------------------------------------------------
 # 3. Load processor and model
@@ -65,7 +69,9 @@ logger.info(f"Split sizes — train: {len(train_ds)}, valid: {len(valid_ds)}, te
 model_id = str(PROJECT_ROOT / "models" / MODEL_NAME)
 
 image_processor = AutoImageProcessor.from_pretrained(model_id)
-model = AutoModelForImageClassification.from_pretrained(model_id,)
+model = AutoModelForImageClassification.from_pretrained(
+    model_id,
+)
 
 # ---------------------------------------------------------------------------
 # 5. Feature extraction: freeze backbone, keep classifier head trainable
@@ -82,16 +88,20 @@ logger.info(
     f"({100 * trainable_params / total_params:.2f}%)"
 )
 
+
 # ---------------------------------------------------------------------------
 # 6. On-the-fly image transforms via set_transform (lazy, no caching)
 # ---------------------------------------------------------------------------
 def apply_transforms(batch: dict) -> dict:
     batch["pixel_values"] = [
-        image_processor(img.convert("RGB"), return_tensors="pt")["pixel_values"].squeeze(0)
+        image_processor(img.convert("RGB"), return_tensors="pt")[
+            "pixel_values"
+        ].squeeze(0)
         for img in batch["image"]
     ]
     del batch["image"]
     return batch
+
 
 train_ds.set_transform(apply_transforms)
 valid_ds.set_transform(apply_transforms)
@@ -103,12 +113,16 @@ test_ds.set_transform(apply_transforms)
 accuracy_metric = evaluate.load("accuracy")
 f1_metric = evaluate.load("f1")
 
+
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
     acc = accuracy_metric.compute(predictions=predictions, references=labels)
-    f1 = f1_metric.compute(predictions=predictions, references=labels, average="weighted")
+    f1 = f1_metric.compute(
+        predictions=predictions, references=labels, average="weighted"
+    )
     return {**acc, **f1}
+
 
 # ---------------------------------------------------------------------------
 # 8. TrainingArguments
@@ -169,4 +183,3 @@ best_model_dir = OUTPUT_DIR / "best_model"
 trainer.save_model(str(best_model_dir))
 image_processor.save_pretrained(str(best_model_dir))
 logger.info(f"Best model saved to {best_model_dir}")
-

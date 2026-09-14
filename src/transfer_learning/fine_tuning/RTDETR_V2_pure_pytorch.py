@@ -81,20 +81,25 @@ logger.info(
 #    pass (Image, BoundingBoxes) together, Resize automatically scales
 #    both the pixels AND the box coordinates. No manual math needed.
 # ---------------------------------------------------------------------------
-train_transforms = T.Compose([
-    T.ToImage(),
-    T.ToDtype(torch.float32, scale=True),
-    T.RandomHorizontalFlip(p=0.5),
-    T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-    T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-])
+train_transforms = T.Compose(
+    [
+        T.ToImage(),
+        T.ToDtype(torch.float32, scale=True),
+        T.RandomHorizontalFlip(p=0.5),
+        T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+    ]
+)
 
-eval_transforms = T.Compose([
-    T.ToImage(),
-    T.ToDtype(torch.float32, scale=True),
-    T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-    T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-])
+eval_transforms = T.Compose(
+    [
+        T.ToImage(),
+        T.ToDtype(torch.float32, scale=True),
+        T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        T.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+    ]
+)
+
 
 # ---------------------------------------------------------------------------
 # 5. Collate function  (HF alternative: data_collator calling image_processor)
@@ -134,14 +139,17 @@ def make_collate_fn(transform: T.Compose):
             tv_img, tv_boxes = transform(tv_img, tv_boxes)
 
             images.append(tv_img)
-            targets.append({
-                "boxes": tv_boxes.as_subclass(torch.Tensor),
-                "labels": labels,
-            })
+            targets.append(
+                {
+                    "boxes": tv_boxes.as_subclass(torch.Tensor),
+                    "labels": labels,
+                }
+            )
 
         return images, targets
 
     return collate_fn
+
 
 # ---------------------------------------------------------------------------
 # 6. DataLoaders  (HF alternative: Trainer handles this internally)
@@ -187,9 +195,7 @@ logger.info(f"Model loaded on device: {CURRENT_DEVICE}")
 #    - AdamW with weight-decay
 #    - Linear warmup for WARMUP_STEPS, then linear decay to 0
 # ---------------------------------------------------------------------------
-optimizer = AdamW(
-    model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
-)
+optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 
 steps_per_epoch = len(train_loader)
 total_steps = NUM_EPOCHS * steps_per_epoch
@@ -208,6 +214,7 @@ scheduler = SequentialLR(
     schedulers=[warmup_sched, decay_sched],
     milestones=[WARMUP_STEPS],
 )
+
 
 # ---------------------------------------------------------------------------
 # 9. Train & Eval loops  (HF alternative: Trainer.train() / Trainer.evaluate())
@@ -245,6 +252,7 @@ def evaluate(model, loader, device):
         loss_dict = model(images, targets)
         total_loss += sum(loss_dict.values()).item()
     return total_loss / len(loader)
+
 
 # ---------------------------------------------------------------------------
 # 10. Training loop  (HF alternative: trainer.train())

@@ -72,9 +72,10 @@ logger.info(
 model_id = str(PROJECT_ROOT / "models" / MODEL_NAME)
 
 image_processor = RTDetrImageProcessor.from_pretrained(model_id)
-model = RTDetrForObjectDetection.from_pretrained(model_id,torch_dtype=torch.float32)
+model = RTDetrForObjectDetection.from_pretrained(model_id, torch_dtype=torch.float32)
 model.to(CURRENT_DEVICE)
 logger.info(f"Model loaded on device: {next(model.parameters()).device}")
+
 
 # ---------------------------------------------------------------------------
 # 5. Data collator (COCO annotation → processor input)
@@ -88,6 +89,7 @@ def data_collator(batch):
         mapped_targets = [{**t, "category_id": t["category_id"] - 1} for t in targets]
         annotations.append({"image_id": image_id, "annotations": mapped_targets})
     return image_processor(images=images, annotations=annotations, return_tensors="pt")
+
 
 # ---------------------------------------------------------------------------
 # 6. TrainingArguments

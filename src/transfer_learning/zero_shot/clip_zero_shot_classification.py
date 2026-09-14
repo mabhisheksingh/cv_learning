@@ -29,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-MODEL_NAME   = "clip_vit_base_patch32"   # local folder name, or use HF hub ID
+MODEL_NAME = "clip_vit_base_patch32"  # local folder name, or use HF hub ID
 DATASET_NAME = "Facial-Expression-Dataset"
 CURRENT_DEVICE = get_device()
 
@@ -56,10 +56,10 @@ data_dir = str(PROJECT_ROOT / "data" / DATASET_NAME)
 #    Use local path or fallback to HuggingFace Hub.
 # ---------------------------------------------------------------------------
 model_path = PROJECT_ROOT / "models" / MODEL_NAME
-model_id   = str(model_path) if model_path.is_dir() else "openai/clip-vit-base-patch32"
+model_id = str(model_path) if model_path.is_dir() else "openai/clip-vit-base-patch32"
 
 processor = CLIPProcessor.from_pretrained(model_id)
-model     = CLIPModel.from_pretrained(model_id)
+model = CLIPModel.from_pretrained(model_id)
 model.eval()
 model.to(CURRENT_DEVICE)
 logger.info(f"CLIP model loaded from: {model_id}")
@@ -78,21 +78,31 @@ PROMPT_TEMPLATES = [
     "a person with a {} expression",
 ]
 
+
 def build_text_prompts(class_names: list[str], templates: list[str]) -> list[str]:
     return [tmpl.format(cls) for cls in class_names for tmpl in templates]
 
+
 text_prompts = build_text_prompts(CLASS_NAMES, PROMPT_TEMPLATES)
-logger.info(f"Total text prompts: {len(text_prompts)} ({len(PROMPT_TEMPLATES)} per class)")
+logger.info(
+    f"Total text prompts: {len(text_prompts)} ({len(PROMPT_TEMPLATES)} per class)"
+)
 
 # Pre-compute text embeddings once (they don't change across images)
 with torch.no_grad():
-    text_inputs  = processor(text=text_prompts, return_tensors="pt", padding=True).to(CURRENT_DEVICE)
-    text_embeds  = model.get_text_features(**text_inputs)
-    text_embeds  = text_embeds / text_embeds.norm(dim=-1, keepdim=True)   # L2 normalize
+    text_inputs = processor(text=text_prompts, return_tensors="pt", padding=True).to(
+        CURRENT_DEVICE
+    )
+    text_embeds = model.get_text_features(**text_inputs)
+    text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)  # L2 normalize
 
     # Reshape to (num_classes, num_templates, embed_dim) and average over templates
-    text_embeds  = text_embeds.view(len(CLASS_NAMES), len(PROMPT_TEMPLATES), -1).mean(dim=1)
-    text_embeds  = text_embeds / text_embeds.norm(dim=-1, keepdim=True)   # re-normalize after avg
+    text_embeds = text_embeds.view(len(CLASS_NAMES), len(PROMPT_TEMPLATES), -1).mean(
+        dim=1
+    )
+    text_embeds = text_embeds / text_embeds.norm(
+        dim=-1, keepdim=True
+    )  # re-normalize after avg
 
 # ---------------------------------------------------------------------------
 # 5. Load test split (torchvision CocoDetection not needed — using ImageFolder)
@@ -107,14 +117,14 @@ logger.info(f"Classes: {class_to_idx}")
 # ---------------------------------------------------------------------------
 # 6. Zero-shot evaluation loop
 # ---------------------------------------------------------------------------
-correct   = 0
-total     = 0
+correct = 0
+total = 0
 batch_size = 32
 
 logger.info("Running zero-shot evaluation…")
 
 for start in range(0, len(test_dataset), batch_size):
-    end   = min(start + batch_size, len(test_dataset))
+    end = min(start + batch_size, len(test_dataset))
     batch_images = [test_dataset[i][0] for i in range(start, end)]
     batch_labels = [test_dataset[i][1] for i in range(start, end)]
 
@@ -134,7 +144,7 @@ for start in range(0, len(test_dataset), batch_size):
 
     for pred, label in zip(predictions, batch_labels):
         predicted_class_name = CLASS_NAMES[pred]
-        true_class_name      = idx_to_class[label]
+        true_class_name = idx_to_class[label]
         if predicted_class_name == true_class_name:
             correct += 1
         total += 1
