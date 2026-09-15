@@ -29,6 +29,7 @@ dependencies = [
     "torchvision>=0.27.0",
     "transformers>=5.17.0",
     "ultralytics>=8.4.72",
+    "scikit-learn>=1.9.1",
 ]
 
 [build-system]

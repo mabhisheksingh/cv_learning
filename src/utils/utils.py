@@ -35,6 +35,7 @@ __all__ = [
     "load_roboflow_dataset",
     "load_classification_split",
     "load_classification_split_with_hf_dataset",
+    "load_hf_dataset_dir"
 ]
 
 
@@ -216,35 +217,17 @@ def load_classification_split(
     return dataset
 
 
-def load_classification_split_with_hf_dataset(
-    data_dir: str | Path,
-    split: str,
-    transform=None,
-) -> Dataset:
-    """Load a single classification split from disk using the HF imagefolder builder.
-
-    The local convention ``valid`` is mapped to HF's ``validation`` split name
-    because the ``imagefolder`` builder only recognises ``train``/``validation``/``test``.
+def load_hf_dataset_dir( data_dir: str | Path)->Dataset:
     """
-    root = Path(data_dir)
-    split_dir = root / split
-    if not split_dir.is_dir():
-        raise FileNotFoundError(f"Split directory not found: {split_dir.resolve()}")
-
-    # HF imagefolder builder expects "validation", not "valid".
-    hf_split = "validation" if split == "valid" else split
-
+        pass data dir for dataset
+    :param data_dir:
+    :return: Dataset
+    """
     ds = load_dataset(
         "imagefolder",
-        data_dir=str(root),
-        split=hf_split,
-        trust_remote_code=False,
+        data_dir=str(data_dir)
     )
-
-    if transform is not None:
-        ds.set_transform(transform)
-
     logger.info(
-        f"Loaded {len(ds)} images from '{split}' split via HuggingFace imagefolder"
+        f"Loaded {len(ds)} via HuggingFace imagefolder"
     )
     return ds
