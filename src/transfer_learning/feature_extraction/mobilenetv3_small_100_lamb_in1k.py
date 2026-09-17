@@ -2,7 +2,9 @@ import logging
 import sys
 from pathlib import Path
 from time import time
+from typing import Any
 
+import albumentations as a
 import evaluate
 import numpy as np
 from transformers import (
@@ -15,7 +17,8 @@ from transformers import (
 
 from src.utils.utils import (
     get_device,
-    load_roboflow_dataset, load_hf_dataset_dir,
+    load_roboflow_dataset,
+    load_hf_dataset_dir,
 )
 
 logging.basicConfig(
@@ -34,6 +37,8 @@ CURRENT_DEVICE = get_device()
 # ---------------------------------------------------------------------------
 accuracy_metric = evaluate.load("accuracy")
 f1_metric = evaluate.load("f1")
+
+
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
@@ -42,6 +47,22 @@ def compute_metrics(eval_pred):
         predictions=predictions, references=labels, average="weighted"
     )
     return {**acc, **f1}
+
+
+# 1. Define the augmentation pipeline once outside the function
+aug = a.Compose(
+    [
+        a.HorizontalFlip(p=0.5),
+        a.Affine(translate_percent=0.05, scale=(0.9, 1.1), rotate=(-15, 15), p=0.5),
+        a.RandomBrightnessContrast(p=0.2),
+        a.CoarseDropout(
+            num_holes_range=(1, 1),
+            hole_height_range=(0.1, 0.2),
+            hole_width_range=(0.1, 0.2),
+            p=0.3,
+        ),
+    ]
+)
 
 
 def main():
@@ -73,7 +94,8 @@ def main():
     # ---------------------------------------------------------------------------
 
     dataset_hf = load_hf_dataset_dir(data_dir=data_dir)
-    train_ds =  dataset_hf["train"]
+    logger.info(f"data columns names :  {dataset_hf.column_names}")
+    train_ds = dataset_hf["train"]
     valid_ds = dataset_hf["validation"]
     test_ds = dataset_hf["test"]
 
@@ -106,36 +128,40 @@ def main():
         f"({100 * trainable_params / total_params:.2f}%)"
     )
 
-
     # ---------------------------------------------------------------------------
     # 6. On-the-fly image transforms via set_transform (lazy, no caching)
     # ---------------------------------------------------------------------------
     def apply_transforms(batch: dict) -> dict:
-        batch["pixel_values"] = [
-            image_processor(img.convert("RGB"), return_tensors="pt")[
-                "pixel_values"
-            ].squeeze(0)
-            for img in batch["image"]
-        ]
+        images = [img.convert("RGB") for img in batch["image"]]
+        processed = image_processor(images=images, return_tensors="pt")
+        batch["pixel_values"] = processed["pixel_values"]
         del batch["image"]
         return batch
 
+    def custom_transform(batch: dict) -> dict[str, Any]:
+        aug_images = [
+            aug(image=np.array(img.convert("RGB")))["image"] for img in batch["image"]
+        ]
+        processed = image_processor(images=aug_images, return_tensors="pt")
+        batch["pixel_values"] = processed["pixel_values"]
+        del batch["image"]
+        return batch
 
+    # train_ds = train_ds.with_transform(custom_transform)
     train_ds = train_ds.with_transform(apply_transforms)
     valid_ds = valid_ds.with_transform(apply_transforms)
     test_ds = test_ds.with_transform(apply_transforms)
-
 
     # ---------------------------------------------------------------------------
     # 8. TrainingArguments
     # ---------------------------------------------------------------------------
     training_args = TrainingArguments(
         output_dir=str(OUTPUT_DIR),
-        dataloader_num_workers=8,
+        dataloader_num_workers=4,
         dataloader_pin_memory=False,
-        num_train_epochs=5,
-        per_device_train_batch_size=32,
-        per_device_eval_batch_size=32,
+        num_train_epochs=15,
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=64,
         learning_rate=1e-3,
         warmup_steps=100,
         weight_decay=1e-4,
@@ -143,6 +169,7 @@ def main():
         save_strategy="epoch",
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
+        # lr_scheduler_type="cosine",
         greater_is_better=True,
         logging_steps=20,
         fp16=CURRENT_DEVICE == "cuda",
@@ -186,6 +213,7 @@ def main():
     trainer.save_model(str(best_model_dir))
     image_processor.save_pretrained(str(best_model_dir))
     logger.info(f"Best model saved to {best_model_dir}")
+
 
 if __name__ == "__main__":
     start_time = time()

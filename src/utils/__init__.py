@@ -3,7 +3,7 @@ from .utils import (
     load_classification_split,
     load_coco_split,
     load_roboflow_dataset,
-    load_hf_dataset_dir
+    load_hf_dataset_dir,
 )
 
 __all__ = [
@@ -11,5 +11,5 @@ __all__ = [
     "load_classification_split",
     "load_coco_split",
     "load_roboflow_dataset",
-    "load_hf_dataset_dir"
+    "load_hf_dataset_dir",
 ]

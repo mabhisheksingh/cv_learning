@@ -35,7 +35,7 @@ __all__ = [
     "load_roboflow_dataset",
     "load_classification_split",
     "load_classification_split_with_hf_dataset",
-    "load_hf_dataset_dir"
+    "load_hf_dataset_dir",
 ]
 
 
@@ -217,17 +217,12 @@ def load_classification_split(
     return dataset
 
 
-def load_hf_dataset_dir( data_dir: str | Path)->Dataset:
+def load_hf_dataset_dir(data_dir: str | Path) -> Dataset:
     """
         pass data dir for dataset
     :param data_dir:
     :return: Dataset
     """
-    ds = load_dataset(
-        "imagefolder",
-        data_dir=str(data_dir)
-    )
-    logger.info(
-        f"Loaded {len(ds)} via HuggingFace imagefolder"
-    )
+    ds = load_dataset("imagefolder", data_dir=str(data_dir))
+    logger.info(f"Loaded {len(ds)} via HuggingFace imagefolder")
     return ds
